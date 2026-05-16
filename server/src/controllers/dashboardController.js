@@ -1,8 +1,179 @@
 import prisma from '../config/prisma.js';
 
-// @desc    Get dashboard stats
-// @route   GET /api/dashboard
-// @access  Private
+const cache = new Map();
+
+const getCacheKey = (req, prefix) => {
+  return `${prefix}_${req.user.id}_${req.user.role}_${req.query.from || ''}_${req.query.to || ''}`;
+};
+
+const getCached = (key) => {
+  const item = cache.get(key);
+  if (item && item.expiry > Date.now()) return item.data;
+  if (item) cache.delete(key);
+  return null;
+};
+
+const setCached = (key, data) => {
+  cache.set(key, { data, expiry: Date.now() + 60000 });
+};
+
+const getBaseWhere = (req) => {
+  const { id: userId, role: accountRole } = req.user;
+  const where = {};
+  if (accountRole !== 'ADMIN') {
+    where.assignedToId = userId;
+  }
+  if (req.query.from || req.query.to) {
+    where.createdAt = {};
+    if (req.query.from) where.createdAt.gte = new Date(req.query.from);
+    if (req.query.to) where.createdAt.lte = new Date(req.query.to);
+  }
+  return where;
+};
+
+export const getDashboardSummary = async (req, res) => {
+  try {
+    const cacheKey = getCacheKey(req, 'summary');
+    const cached = getCached(cacheKey);
+    if (cached) return res.json({ data: cached, error: null });
+
+    const where = getBaseWhere(req);
+    const tasks = await prisma.task.findMany({ where });
+    
+    const now = new Date();
+    let totalTasks = tasks.length;
+    let openTasks = 0;
+    let inProgressTasks = 0;
+    let completedTasks = 0;
+    let overdueCount = 0;
+
+    tasks.forEach(t => {
+      if (t.status === 'TODO') openTasks++;
+      if (t.status === 'IN_PROGRESS') inProgressTasks++;
+      if (t.status === 'DONE') completedTasks++;
+      if (t.dueDate && new Date(t.dueDate) < now && t.status !== 'DONE') overdueCount++;
+    });
+
+    const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    
+    const data = { totalTasks, openTasks, inProgressTasks, completedTasks, overdueCount, completionRate };
+    setCached(cacheKey, data);
+    res.json({ data, error: null });
+  } catch (error) {
+    res.json({ data: null, error: error.message });
+  }
+};
+
+export const getDashboardByStatus = async (req, res) => {
+  try {
+    const cacheKey = getCacheKey(req, 'bystatus');
+    const cached = getCached(cacheKey);
+    if (cached) return res.json({ data: cached, error: null });
+
+    const where = getBaseWhere(req);
+    const tasks = await prisma.task.findMany({ where, select: { status: true } });
+    
+    const total = tasks.length;
+    const counts = { TODO: 0, IN_PROGRESS: 0, DONE: 0 };
+    tasks.forEach(t => counts[t.status]++);
+
+    const statuses = [
+      { label: 'To Do', count: counts.TODO, percent: total > 0 ? Math.round((counts.TODO/total)*100) : 0, code: 'TODO' },
+      { label: 'In Progress', count: counts.IN_PROGRESS, percent: total > 0 ? Math.round((counts.IN_PROGRESS/total)*100) : 0, code: 'IN_PROGRESS' },
+      { label: 'Done', count: counts.DONE, percent: total > 0 ? Math.round((counts.DONE/total)*100) : 0, code: 'DONE' },
+    ];
+
+    const data = { statuses };
+    setCached(cacheKey, data);
+    res.json({ data, error: null });
+  } catch (error) {
+    res.json({ data: null, error: error.message });
+  }
+};
+
+export const getDashboardByUser = async (req, res) => {
+  try {
+    const cacheKey = getCacheKey(req, 'byuser');
+    const cached = getCached(cacheKey);
+    if (cached) return res.json({ data: cached, error: null });
+
+    const where = getBaseWhere(req);
+    
+    const tasks = await prisma.task.findMany({ 
+      where, 
+      include: { assignedTo: true }
+    });
+
+    const userMap = {};
+    const now = new Date();
+
+    tasks.forEach(t => {
+      if (!t.assignedTo) return;
+      const uid = t.assignedTo.id;
+      if (!userMap[uid]) {
+        userMap[uid] = {
+          id: uid,
+          name: t.assignedTo.name,
+          avatarUrl: null,
+          assigned: 0,
+          completed: 0,
+          overdue: 0
+        };
+      }
+      userMap[uid].assigned++;
+      if (t.status === 'DONE') userMap[uid].completed++;
+      if (t.dueDate && new Date(t.dueDate) < now && t.status !== 'DONE') userMap[uid].overdue++;
+    });
+
+    const data = { users: Object.values(userMap).sort((a,b) => b.assigned - a.assigned) };
+    setCached(cacheKey, data);
+    res.json({ data, error: null });
+  } catch (error) {
+    res.json({ data: null, error: error.message });
+  }
+};
+
+export const getDashboardOverdue = async (req, res) => {
+  try {
+    const cacheKey = getCacheKey(req, 'overdue');
+    const cached = getCached(cacheKey);
+    if (cached) return res.json({ data: cached, error: null });
+
+    const where = getBaseWhere(req);
+    const now = new Date();
+    where.dueDate = { lt: now };
+    where.status = { not: 'DONE' };
+
+    const overdueTasks = await prisma.task.findMany({
+      where,
+      include: {
+        project: true,
+        assignedTo: true
+      }
+    });
+
+    const tasks = overdueTasks.map(t => {
+      const diffTime = Math.abs(now - new Date(t.dueDate));
+      const daysLate = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return {
+        id: t.id,
+        title: t.title,
+        projectName: t.project?.name || 'Unknown',
+        assignee: t.assignedTo?.name || 'Unassigned',
+        dueDate: t.dueDate,
+        daysLate,
+        priority: t.priority
+      };
+    }).sort((a, b) => b.daysLate - a.daysLate);
+
+    const data = { tasks };
+    setCached(cacheKey, data);
+    res.json({ data, error: null });
+  } catch (error) {
+    res.json({ data: null, error: error.message });
+  }
+};
+
 export const getDashboardStats = async (req, res, next) => {
   try {
     const { id: userId, role: accountRole } = req.user;
@@ -96,7 +267,6 @@ export const getDashboardStats = async (req, res, next) => {
       }
     }
 
-    // Process user workloads
     let totalMembers = 0;
     let activeMembers = 0;
     let overloadedMembers = 0;
@@ -109,10 +279,8 @@ export const getDashboardStats = async (req, res, next) => {
     Object.values(tasksPerUserMap).forEach((u) => {
       activeMembers++;
       
-      // Calculate completion rate
       u.completionRate = u.taskCount > 0 ? Math.round((u.completedTasks / u.taskCount) * 100) : 0;
       
-      // Workload Level
       const openTasks = u.taskCount - u.completedTasks;
       if (openTasks === 0) u.workloadLevel = 'No Tasks';
       else if (openTasks <= 2) u.workloadLevel = 'Light';

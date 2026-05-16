@@ -6,6 +6,18 @@
 }
 
 @layer base {
+  :root {
+    --dash-bg:        #0F1117;
+    --dash-surface:   #1A1D27;
+    --dash-border:    rgba(255,255,255,0.07);
+    --dash-accent:    #B8FF57;
+    --dash-violet:    #7B6FFF;
+    --dash-amber:     #F5A623;
+    --dash-red:       #FF5252;
+    --dash-teal:      #00C9A7;
+    --dash-text:      #E8EAF0;
+    --dash-muted:     #6B7280;
+  }
   * {
     box-sizing: border-box;
   }
@@ -16,7 +28,7 @@
   }
 
   ::selection {
-    @apply bg-blue-500/30 text-blue-100;
+    @apply bg-cyan-500/30 text-cyan-100;
   }
 
   /* Smooth scrollbars */
@@ -52,6 +64,30 @@
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .dash-skeleton {
+    background: linear-gradient(90deg,
+      var(--dash-surface) 25%,
+      rgba(255,255,255,0.05) 50%,
+      var(--dash-surface) 75%);
+    background-size: 200% 100%;
+    animation: dash-shimmer 1.4s infinite;
+  }
+
+  @keyframes dash-shimmer { 
+    0% { background-position: 200% 0; } 
+    100% { background-position: -200% 0; } 
+  }
+
+  @keyframes overdue-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,82,82,0.4); }
+    50%       { box-shadow: 0 0 0 8px rgba(255,82,82,0); }
   }
 
   .skeleton {

@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { ShieldCheck, Users, LayoutGrid, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Users, CheckCircle2, Sparkles } from 'lucide-react';
 import { Button, Input, Alert } from '../components/ui';
 
 const RoleCard = ({ selected, title, description, icon: Icon, onClick }) => (
@@ -9,16 +9,16 @@ const RoleCard = ({ selected, title, description, icon: Icon, onClick }) => (
     onClick={onClick}
     className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 relative overflow-hidden group ${
       selected 
-        ? 'bg-blue-500/10 border-blue-500/50 shadow-[0_0_20px_rgba(59,130,246,0.15)]' 
+        ? 'bg-cyan-500/10 border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.15)]' 
         : 'bg-slate-900/40 border-white/10 hover:border-white/20 hover:bg-slate-800/40'
     }`}
   >
-    {selected && <div className="absolute top-0 right-0 w-0 h-0 border-t-[30px] border-l-[30px] border-t-blue-500 border-l-transparent">
+    {selected && <div className="absolute top-0 right-0 w-0 h-0 border-t-[30px] border-l-[30px] border-t-cyan-500 border-l-transparent">
       <CheckCircle2 className="w-3 h-3 text-white absolute -top-[25px] -left-[12px]" />
     </div>}
     
     <div className="flex items-start gap-3">
-      <div className={`p-2.5 rounded-lg border ${selected ? 'bg-blue-500/20 border-blue-500/30 text-blue-400' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>
+      <div className={`p-2.5 rounded-lg border ${selected ? 'bg-cyan-500/20 border-cyan-500/30 text-cyan-400' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>
         <Icon className="w-5 h-5" />
       </div>
       <div>
@@ -61,8 +61,8 @@ const Signup = () => {
       
       {/* Decorative background glows */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600/10 blur-[120px]" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-cyan-600/10 blur-[120px]" />
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-600/10 blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-amber-500/10 blur-[120px]" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px] opacity-5" />
       </div>
 
@@ -70,15 +70,18 @@ const Signup = () => {
         
         {/* Mobile Logo */}
         <div className="absolute top-6 left-6 flex items-center">
-          <span className="text-sm font-bold text-white tracking-wide">Task Manager</span>
+          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-cyan-500 to-amber-400 text-white flex items-center justify-center mr-2">
+            <Sparkles className="w-4 h-4" />
+          </div>
+          <span className="text-sm font-black text-white tracking-wide">FlowDesk</span>
         </div>
 
         <div className="w-full max-w-lg animate-in" style={{ animationDelay: '0.1s' }}>
           <div className="bg-slate-950/80 backdrop-blur-2xl p-8 sm:p-10 rounded-3xl border border-white/10 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 opacity-50" />
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-amber-400 opacity-70" />
             
             <div className="mb-8 text-center">
-              <h2 className="text-2xl font-extrabold text-white tracking-tight mb-2">Create your workspace</h2>
+              <h2 className="text-3xl font-black text-white tracking-tight mb-2">Create your workspace</h2>
               <p className="text-sm text-slate-400 font-medium">Start managing projects in seconds.</p>
             </div>
 
@@ -159,7 +162,7 @@ const Signup = () => {
             <div className="mt-8 pt-6 border-t border-white/5 text-center">
               <p className="text-sm text-slate-400">
                 Already have an account?{' '}
-                <Link to="/login" className="text-blue-400 hover:text-blue-300 font-bold transition-colors">
+                <Link to="/login" className="text-cyan-400 hover:text-cyan-300 font-bold transition-colors">
                   Sign in instead
                 </Link>
               </p>

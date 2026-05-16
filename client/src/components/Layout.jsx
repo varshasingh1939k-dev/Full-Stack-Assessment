@@ -4,12 +4,11 @@ import { Outlet } from 'react-router-dom';
 
 const Layout = () => (
   <div className="flex h-screen bg-slate-950 text-slate-200 font-sans overflow-hidden">
-    {/* Global dark background effects - subtly textured */}
     <div className="fixed inset-0 z-0 pointer-events-none">
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600/5 blur-[120px]" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-violet-600/5 blur-[120px]" />
-      <div className="absolute inset-0 opacity-5"
-        style={{ backgroundImage: 'linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)', backgroundSize: '32px 32px' }}
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-lime-500/8 blur-[120px]" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-fuchsia-500/8 blur-[120px]" />
+      <div className="absolute inset-0 opacity-[0.20]"
+        style={{ backgroundImage: 'radial-gradient(ellipse at 22% 18%, rgba(163,230,53,0.28), transparent 34%), radial-gradient(ellipse at 82% 78%, rgba(232,121,249,0.24), transparent 38%), linear-gradient(145deg, rgba(56,189,248,0.16), transparent 36%, rgba(15,23,42,0.08) 58%, rgba(163,230,53,0.10))' }}
       />
     </div>
 
