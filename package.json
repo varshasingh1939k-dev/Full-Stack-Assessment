@@ -4,8 +4,9 @@
   "description": "Full-stack Team Task Manager",
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
-    "build": "npm install --prefix client && npm run build --prefix client && npm install --prefix server && npm run generate --prefix server",
-    "start": "npm start --prefix server"
+    "install-all": "npm install --prefix server && npm install --prefix client",
+    "build": "npm install --prefix server && npm install --prefix client && npm run build --prefix client && npm run generate --prefix server",
+    "start": "npm run migrate --prefix server && npm start --prefix server"
   },
   "dependencies": {},
   "devDependencies": {

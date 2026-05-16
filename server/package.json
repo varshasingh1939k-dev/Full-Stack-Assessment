@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "generate": "prisma generate"
+    "generate": "prisma generate",
+    "migrate": "prisma migrate deploy"
   },
   "keywords": [],
   "author": "",
